@@ -1,0 +1,40 @@
+site_name: Zheng-Chuan Portfolio
+site_url: https://Zheng-Chuan.github.io/
+repo_url: https://github.com/Zheng-Chuan/Zheng-Chuan.github.io
+repo_name: Zheng-Chuan.github.io
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Roadmap: roadmap.md
+  - Skill: skill.md
+  - Resume: resume.md
+  - Background: background.md
+  - Projects:
+      - Overview: projects/index.md
+      - RiskAgent-MultiAgent: projects/riskagent-multiagent.md
+      - RiskKnowGraph-GraphRAG: projects/riskknowgraph-graphrag.md
+      - RiskMonitor-MCP: projects/riskmonitor-mcp.md
+      - RiskDataQuality-Airflow: projects/riskdataquality-airflow.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
