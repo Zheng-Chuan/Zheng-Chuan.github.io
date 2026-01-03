@@ -1,6 +1,6 @@
 # Zheng-Chuan Portfolio
 
-目标: 用可复现的 demo 和工程化文档, 展示 AI Agent Dev + LLM App Engineer 能力.
+个人项目
 
 ## Quick links
 
