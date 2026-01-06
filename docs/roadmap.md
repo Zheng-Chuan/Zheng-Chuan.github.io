@@ -111,3 +111,73 @@
     - 目标: 收敛到 M2.
     - 交付: 两条核心 DAG 可运行, 文档与最小告警.
     - 验收: 新人按 README 10-15 分钟可跑通 demo.
+
+## 2026-02 计划(按周)
+
+目标: 2026-02 完成 2 个 LLM 方向作品.
+
+- P0: `RiskLLM-FineTunning`(主线, 质量与领域能力)
+- P1: `RiskLLM-InferenceOptimization`(次线, 推理服务与性能)
+
+时间分配建议:
+
+- P0 主线(FineTunning): 70%-80%
+- P1 次线(InferenceOptimization): 20%-30%
+
+统一验收口径(二月底):
+
+- FineTunning: 有固定 test set 与评测脚本, baseline vs finetuned 的对比结果可复现并落盘.
+- InferenceOptimization: 有 OpenAI compatible API + 可复现压测脚本 + 至少 1-2 个优化点的对比报告.
+
+Roadmap links:
+
+- RiskLLM-FineTunning: [docs/ROADMAP.md](https://github.com/Zheng-Chuan/RiskLLM-FineTunning/blob/main/docs/ROADMAP.md)
+- RiskLLM-InferenceOptimization: [ROADMAP.md](https://github.com/Zheng-Chuan/RiskLLM-InferenceOptimization/blob/main/ROADMAP.md)
+
+### Week 1 (02-01 to 02-07): 任务定义 + 数据闭环 + baseline
+
+- `RiskLLM-FineTunning`
+  - 目标: 明确金融衍生品风险评估与报告的最小 MVP, 固定输入输出口径.
+  - 交付: 数据 schema 与报告模板 v0, 训练/验证/测试切分, baseline 评测落盘.
+  - 验收: 1 条命令可跑 baseline eval, 输出 artifacts(例如 jsonl + summary).
+
+- `RiskLLM-InferenceOptimization`
+  - 目标: 云 GPU 上跑通推理服务与最小压测.
+  - 交付: OpenAI compatible server 跑通, 基线指标(TTFT, tokens/s, p95/p99)落盘.
+  - 验收: curl 调用可用, 压测脚本可跑并输出报告.
+
+### Week 2 (02-08 to 02-14): QLoRA 跑通 + 第一次对比
+
+- `RiskLLM-FineTunning`
+  - 目标: QLoRA 训练闭环跑通, 产出第一个可对比版本.
+  - 交付: 可复现训练脚本, adapter 或合并权重, baseline vs finetuned 对比表.
+  - 验收: 在固定 test set 上, 至少 1 个核心指标稳定优于 baseline.
+
+- `RiskLLM-InferenceOptimization`
+  - 目标: 做 1 次参数调优并给出对比.
+  - 交付: batching 与并发相关参数的对比实验, 曲线或表格.
+  - 验收: 有 tuned vs baseline 的可复现对比数据.
+
+### Week 3 (02-15 to 02-21): 数据迭代 + 评测固化 + 可靠性
+
+- `RiskLLM-FineTunning`
+  - 目标: 迭代数据与训练策略, 固化评测口径.
+  - 交付: failure cases 归因与补数据, eval 脚本与数据版本锁定.
+  - 验收: 你能用固定样例说明提升点与退化点, 并解释原因.
+
+- `RiskLLM-InferenceOptimization`
+  - 目标: 可观测性与过载保护.
+  - 交付: `/metrics`, 结构化日志, timeout 与 backpressure 策略.
+  - 验收: 过载时行为可控, 指标与日志能定位问题.
+
+### Week 4 (02-22 to 02-28): 收尾展示 + 文档 + 简历 bullet
+
+- `RiskLLM-FineTunning`
+  - 目标: 可展示, 可复现, 可写简历.
+  - 交付: README(Quickstart, Train, Eval, Demo), 模型发布方式, 代表性案例.
+  - 验收: 新人按 README 10-15 分钟可跑通 demo + eval.
+
+- `RiskLLM-InferenceOptimization`
+  - 目标: 选择 1 个额外优化点并固化报告.
+  - 交付: 量化 or prompt cache or speculative decoding(三选一), 对比报告与配置记录.
+  - 验收: 选定场景的收益可复现, 并输出 3-5 条简历 bullet.
