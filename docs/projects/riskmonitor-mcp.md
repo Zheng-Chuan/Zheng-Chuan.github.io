@@ -2,6 +2,7 @@
 
 - Repo: [Zheng-Chuan/RiskMonitor-MCP](https://github.com/Zheng-Chuan/RiskMonitor-MCP)
 - Roadmap: [docs/ROADMAP.md](https://github.com/Zheng-Chuan/RiskMonitor-MCP/blob/main/docs/ROADMAP.md)
+- Docs(site): [docs/index](riskmonitor-mcp/docs/index.md)
 
 ## Positioning
 

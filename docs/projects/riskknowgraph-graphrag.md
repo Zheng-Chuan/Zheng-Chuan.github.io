@@ -2,6 +2,7 @@
 
 - Repo: [Zheng-Chuan/RiskKnowGraph-GraphRAG](https://github.com/Zheng-Chuan/RiskKnowGraph-GraphRAG)
 - Roadmap: [docs/ROADMAP.md](https://github.com/Zheng-Chuan/RiskKnowGraph-GraphRAG/blob/main/docs/ROADMAP.md)
+- Docs(site): [docs/index](riskknowgraph-graphrag/docs/index.md)
 
 ## Positioning
 

@@ -32,45 +32,61 @@
 
 ### Week 1 (01-03 to 01-09): P0 baseline 跑通
 
-- `RiskAgent-MultiAgent`
-  - 目标: 跑通最小 RAG + 多智能体编排闭环, 形成可演示 demo.
+- [x] `RiskAgent-MultiAgent`
+  - [x] 目标: 跑通最小 RAG + 多智能体编排闭环, 形成可演示 demo.
+  - [x] 验收: UI 或 CLI 能 ingest -> retrieve -> answer, 并返回 citations.
   - 依据: `RiskAgent-MultiAgent/docs/ROADMAP.md`.
-  - 验收: UI 或 CLI 能 ingest -> retrieve -> answer, 并返回 citations.
 
-- `RiskKnowGraph-GraphRAG`
-  - 目标: 跑通开源 GraphRAG baseline, 锁定环境与版本.
+- [x] `RiskKnowGraph-GraphRAG`
+  - [x] 目标: 从 0 自研一个 mini GraphRAG MVP, 先用公开金融衍生品风险语料跑通 index + query.
+  - [x] 交付:
+    - [x] 公开语料落盘到 corpus/, 并记录来源
+    - [x] 1 条命令跑通 index, artifacts 落盘
+      - [x] graph.json, chunks.jsonl, tfidf_index.joblib(或等价文件)
+    - [x] 1 条命令跑通 query
+      - [x] seed retrieval -> seed entities -> k=1 graph expansion -> context -> answer
+      - [x] 输出 explain + citations, 并落盘
+  - [x] 验收:
+    - [x] 新人按 README 10-15 分钟可跑通 index + query
+    - [x] answer 中的 citations 能回指到具体 chunk
+    - [x] explain 能说明 seed entities 与扩展到的节点/边
   - 依据: `RiskKnowGraph-GraphRAG/docs/ROADMAP.md`.
-  - 验收: index 与 query 跑通, 产物可落盘.
 
 - P1 时间窗口(建议 20%-30%)
-  - `RiskMonitor-MCP`
-    - 目标: Phase 0 收尾启动, 明确 1 条最小 demo 路径.
-    - 交付: 连接池与超时策略设计草案, 模块拆分计划.
-    - 验收: 写清楚 demo 脚本大纲与数据口径.
-  - `RiskDataQuality-Airflow`
-    - 目标: 环境可启动, DAG 可加载.
-    - 交付: Docker Compose 一键启动通过, 1 条最小 DAG 可触发.
-    - 验收: Airflow UI 可访问, DAG 可成功运行一次.
+  - [x] `RiskMonitor-MCP`
+    - [x] 目标: Phase 0 Week 1 监控链路 MVP 跑通, 并完成验收.
+    - [x] 验收: tests 通过, scenario 与 smoke 可复现.
+  - [ ] `RiskDataQuality-Airflow`
+    - [ ] 目标: 环境可启动, DAG 可加载.
+    - [ ] 验收: Airflow UI 可访问, DAG 可成功运行一次.
 
 ### Week 2 (01-10 to 01-16): P0 用你的语料跑通, 开始固化评测
 
-- `RiskAgent-MultiAgent`
-  - 目标: 固化 ingest 与 chunk 策略, 提升引用可追溯.
-  - 验收: 20 个种子问题中, 80% 以上回答包含有效 citations.
+- [ ] `RiskAgent-MultiAgent`
+  - [ ] 目标: 固化 ingest 与 chunk 策略, 提升引用可追溯.
+  - [ ] 验收: 20 个种子问题中, 80% 以上回答包含有效 citations.
 
-- `RiskKnowGraph-GraphRAG`
-  - 目标: 用你的最小语料跑通 end to end, 固化 5 个可复现问题.
-  - 验收: 5 个问题能稳定复现输出, 且能定位 context 来源.
+- [x] `RiskKnowGraph-GraphRAG`
+  - [x] 目标: 固化 GraphRAG 的 artifacts contract 与回归口径, 做出可复现问题集.
+  - [x] 交付:
+    - [x] 固化 artifacts schema
+      - [x] chunk_id, source, entity list, edge list, explain 结构
+    - [x] 5 个可复现问题 + 1 条 smoke 命令
+    - [x] 调整 k 与过滤策略的默认值(先固定 k=1)
+  - [x] 验收:
+    - [x] 5 个问题能稳定复现输出
+    - [x] 每个问题都能定位到对应的 context 与扩展路径
+  - 依据: `RiskKnowGraph-GraphRAG/docs/ROADMAP.md`.
 
 - P1 时间窗口(建议 20%-30%)
-  - `RiskMonitor-MCP`
-    - 目标: Phase 0 收尾继续推进.
-    - 交付: main.py 模块化拆分最小落地, 基础测试补齐.
-    - 验收: Phase 0 验收标准至少完成 1-2 项未完成项.
-  - `RiskDataQuality-Airflow`
-    - 目标: 自定义组件最小集合启动.
-    - 交付: 至少 1 个 Hook 或 1 个 Operator 的最小实现.
-    - 验收: 组件可在 DAG 中被引用, 并有 1 条单元测试.
+  - [ ] `RiskMonitor-MCP`
+    - [ ] 目标: Phase 0 Week 2 工程化强化与性能.
+    - [ ] 交付: main.py 模块化拆分最小落地, 基础测试补齐.
+    - [ ] 验收: Phase 0 验收标准至少完成 1-2 项未完成项.
+  - [ ] `RiskDataQuality-Airflow`
+    - [ ] 目标: 自定义组件最小集合启动.
+    - [ ] 交付: 至少 1 个 Hook 或 1 个 Operator 的最小实现.
+    - [ ] 验收: 组件可在 DAG 中被引用, 并有 1 条单元测试.
 
 ### Week 3 (01-17 to 01-23): P0 质量与可控
 
@@ -79,8 +95,17 @@
   - 验收: 评测脚本可一键运行并输出报告.
 
 - `RiskKnowGraph-GraphRAG`
-  - 目标: 深入理解数据流与关键参数, 完成小幅调参并可解释收益.
-  - 验收: 能口头复述完整数据流, 参数变化的质量与成本变化可解释.
+  - 目标: 强化 GraphRAG 的可解释性与可控性, 让 graph 部分成为明确增益来源.
+  - 交付:
+    - explain 输出增强
+      - 展示 seed chunks, seed entities, expanded entities, expanded edges
+      - 展示最终 context 由哪些 chunks 组成
+    - 做 2-3 个关键参数对比
+      - k(1 vs 2), seed top_k, entity 过滤规则
+    - 输出对比报告(表格或 markdown)
+  - 验收:
+    - 你能口头复述 index 与 query 的完整数据流
+    - 你能解释 graph expansion 带来的质量变化与噪声代价
 
 - P1 时间窗口(建议 20%-30%)
   - `RiskMonitor-MCP`
@@ -99,8 +124,15 @@
   - 验收: 新人按 README 可复现 demo, 并能理解模块职责.
 
 - `RiskKnowGraph-GraphRAG`
-  - 目标: 文档固化与排障手册, 并输出 10 分钟讲解稿.
-  - 验收: 新人按 README 可复现, 你能用 10 分钟讲清 GraphRAG 核心流程.
+  - 目标: 文档固化与对外展示, 让别人也能跑通并理解 GraphRAG 的技术亮点.
+  - 交付:
+    - README: 一键运行 index/query/smoke, 目录与 artifacts 说明
+    - NOTES: GraphRAG vs RAG 的差异, graph expansion 的 explain 示例
+    - TROUBLESHOOTING: 至少 5 个常见问题与解决办法
+    - 10 分钟讲解稿: 用 1 个问题演示 seed -> expand -> citations
+  - 验收:
+    - 新人按 README 可复现
+    - 你能用 10 分钟讲清 GraphRAG 的核心流程与亮点
 
 - P1 时间窗口(建议 20%-30%, 若 P0 滞后则按降级规则压缩)
   - `RiskMonitor-MCP`
@@ -131,8 +163,8 @@
 
 Roadmap links:
 
-- RiskLLM-FineTunning: [docs/ROADMAP.md](https://github.com/Zheng-Chuan/RiskLLM-FineTunning/blob/main/docs/ROADMAP.md)
-- RiskLLM-InferenceOptimization: [ROADMAP.md](https://github.com/Zheng-Chuan/RiskLLM-InferenceOptimization/blob/main/ROADMAP.md)
+- `RiskLLM-FineTunning/docs/ROADMAP.md`
+- `RiskLLM-InferenceOptimization/ROADMAP.md`
 
 ### Week 1 (02-01 to 02-07): 任务定义 + 数据闭环 + baseline
 
