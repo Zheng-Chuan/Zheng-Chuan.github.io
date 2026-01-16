@@ -2,36 +2,12 @@
 
 采用最小可运行 demo -> 逐步扩充的策略, 从简单到复杂逐步构建系统.
 
-## 2026-01 1 个月范围(优先级 P1)
+## 功能
+1. 根据用户提问 计算不同纬度的风险数据 如果超出给定阈值 则报警
+2. 采用事件驱动模式 数据库每一笔交易 触发风险计算和检测 如果超出给定阈值 则报警
+3. 高可用的服务
+4. 用户身份安全等级区分 不同的用户有不同的数据访问权限
 
-说明:
-
-- 该项目在 2026-01 的优先级低于 `RiskAgent-MultiAgent` 与 `RiskKnowGraph-GraphRAG`.
-- 2026-01 只做最小可展示版本, 重点是可复现, 可演示, 可维护.
-
-主线定位:
-
-- 用例 A: Intraday desk exposure monitoring(near real time)
-  - 输入: positions(交易系统落库) + market snapshot(上游 API 或 mock) + risk limits
-  - 输出: desk 级别 exposure(PV, Delta, Vega 的简化版) + breaches + alert payload
-  - 目标: 让工程师能通过工具与文档理解风控口径, 让 risk manager 能实时查询与订阅告警
-
-硬性验收口径:
-
-- 本地可运行: MCP server 可稳定启动, 数据库可运行.
-- 端到端演示: MCP 客户端可调用至少 2 个工具, 且有 1 条 demo 脚本.
-- 工程化底线: 无明文 secrets, 错误分层与结构化日志可定位, tests 可运行且通过.
-
-验收原则:
-
-- 以 tests 全部通过为硬标准.
-- demo 作为辅助验证, 用于面试叙事与可复现展示.
-
-周计划与 phase 映射:
-
-- Week 1-2 对应 Phase 0: 工程化底线与可复现闭环.
-- Week 3 对应 Phase 1: DX 与服务化形态稳定.
-- Week 4 对应 Phase 3(最小版): 可观测与告警闭环, 指标化验收.
 
 ### Week 1(Phase 0): 监控链路 MVP(vertical slice)
 
@@ -71,55 +47,170 @@
 
 - 交付
 
-  - [ ] 模块化重构
-    - [ ] 拆分 main.py 为模块(接口层, service 层, 计算层, 数据访问层, 配置层)
-    - [ ] 统一输入输出 schema 与错误结构
+  - [x] 模块化重构
+    - [x] 拆分 main.py 为模块(接口层, service 层, 计算层, 数据访问层, 配置层)
+    - [x] 统一输入输出 schema 与错误结构
 
-  - [ ] 数据访问层工业化
-    - [ ] 连接池, 超时, 重试
-    - [ ] 读写分离预留点或 cache 抽象(先不实现也可)
+  - [x] 数据访问层工业化
+    - [x] SQLAlchemy Engine 连接池与超时
+    - [x] 重试策略(下沉到 data_access)
+    - [x] 错误映射
+    - [x] 读写分离预留点或 cache 抽象(先不实现也可)
 
-  - [ ] 性能与容量口径
-    - [ ] 固化压测用例(固定请求集)
-    - [ ] 定义并输出 p50, p95 latency 的目标与测量方法
+  - [x] 性能与容量口径
+    - [x] 固化压测用例(固定请求集)
+    - [x] 定义并输出 p50, p95 latency 的目标与测量方法
 
 - 验收
 
-  - [ ] p95 latency 在固定用例下达到目标(先给出保守目标, 例如 500ms 以内)
-  - [ ] 关键模块可单测, 用例级逻辑可集成测试
+  - [x] p95 latency 在固定用例下达到目标(目标: 500ms 以内, 方法: scripts/benchmarks/bench_monitor_desk_exposure.py --p95-target-ms 500)
+  - [x] 关键模块可单测, 用例级逻辑可集成测试
 
 ### Week 3(Phase 1): 服务化形态与 DX 固化
 
 - 交付
 
-  - [ ] streamable-http 部署形态固化
-    - [ ] streamable-http 作为推荐部署方式
-    - [ ] health check, readiness, graceful shutdown
-  - [ ] DX 固化
-    - [ ] 统一启动与测试入口
+  - [x] streamable-http 部署形态固化
+    - [x] streamable-http 作为推荐部署方式
+    - [x] health check, readiness, graceful shutdown
+  - [x] DX 固化
+    - [x] 统一启动与测试入口(Makefile 提供 make setup-mcp, make test-all)
     - [x] 明确目录职责(例如 src, scripts, tests)
 
 - 验收
 
-  - [ ] 在 streamable-http 模式下可稳定运行并可被客户端连接
-  - [ ] tests 全部通过
+  - [x] 在 streamable-http 模式下可稳定运行并可被客户端连接
+  - [x] tests 全部通过
 
 ### Week 4(Phase 3 最小版): 可观测与告警闭环
 
 - 交付
 
-  - [ ] 告警闭环
-    - [ ] 告警规则最小集合(例如 desk delta breach)
-    - [ ] 告警路由(例如 webhook 或写入 alerts 表)
-  - [ ] 可观测与容量口径
-    - [ ] 指标可观测: p50, p95 latency, error rate
-    - [ ] 固化压测用例与报告输出
+  - [x] 告警闭环
+    - [x] 告警规则最小集合(desk delta breach, 支持 INFO/WARNING/CRITICAL 三级)
+    - [x] 告警路由(写入 alerts 表, 支持按 request_id/alert_id/desk/severity 查询)
+  - [x] 可观测与容量口径
+    - [x] 指标可观测: /metrics 端点暴露 Prometheus 格式指标(request_count, avg_latency, error_rate)
+    - [x] 已有压测脚本(scripts/benchmarks/bench_monitor_desk_exposure.py)
 
 - 验收
 
-  - [ ] 告警可端到端触发并可追踪(request_id, alert_id)
-  - [ ] 固定压测用例下 error rate 与 p95 latency 可观测
-  - [ ] tests 全部通过
+  - [x] 告警可端到端触发并可追踪(request_id, alert_id)
+  - [x] /metrics 端点可正常访问, 暴露关键指标
+  - [x] tests 全部通过(27 个测试, 包含 5 个告警测试)
+
+### Week 5(Phase 3+): 事件驱动基础与告警语义
+
+- 交付
+
+  - [ ] CDC 事件口径与 topics 定义
+    - [ ] 定义 trade position 变更事件 schema
+    - [ ] 定义 topics 规划
+      - [ ] positions_cdc topic
+        - [ ] Kafka message key 保持 Debezium 默认主键
+        - [ ] consumer 侧按 desk 做聚合与 breach 判断
+      - [ ] risk_alerts topic
+        - [ ] 可选扩展 topic, 用于对外 fan out 或未来拆分独立 notifier
+        - [ ] partition key 固定为 alert_id
+    - [ ] 将 topic 规划落地到配置
+      - [ ] positions_cdc key 使用 position_id
+      - [ ] risk_alerts key 使用 alert_id
+  - [ ] Debezium MySQL binlog to Kafka PoC
+    - [ ] 本地可跑通 MySQL binlog 订阅
+    - [ ] 事件可进入 Kafka topic 并可被 consumer 消费
+  - [ ] desk level breach 语义与告警生命周期
+    - [ ] desk 迁移语义(方案B)
+      - [ ] update 时 desk 发生变化: 对 before.desk 扣减 对 after.desk 增加
+    - [ ] 明确告警状态
+      - [ ] pending_analysis
+      - [ ] pending_delivery
+      - [ ] delivered
+      - [ ] consumed
+    - [ ] 定义告警解除规则
+      - [ ] 强制接收方 webhook ack 才能消费
+      - [ ] 未 ack 时不消费, 告警保持可重试投递
+  - [ ] server 内部事件触发(2A)
+    - [ ] analysis_queue, delivery_queue 使用进程内 asyncio.Queue
+    - [ ] 启动补偿: 扫描 pending_analysis 与 pending_delivery 并重新 enqueue
+    - [ ] 约束: 主链路事件驱动, 扫描仅用于补偿恢复
+  - [ ] 告警落库字段增量
+    - [ ] alerts 表新增 status, analysis_json, analysis_text, delivery_id 等字段
+    - [ ] 新增 processed_cdc_events 与 desk_risk_state 表
+  - [ ] 质量口径
+    - [ ] 覆盖率可度量
+      - [x] make test-cov 生成 html 和 xml 覆盖率
+      - [ ] 核心链路覆盖率目标 80 percent plus
+    - [ ] lint 统一
+      - [x] 只使用 pylint 作为静态检查入口
+
+- 验收
+
+  - [ ] CDC 事件 schema 和 topic 规划有文档并落地到配置
+  - [ ] 本地环境可稳定把 MySQL 变更写入 Kafka 并消费
+  - [ ] server 重启后可通过启动补偿继续处理未完成告警
+  - [ ] pytest 全量通过
+  - [ ] 覆盖率报告可生成并达到目标
+
+### Week 6+(Phase 3+): 告警推送闭环与 10s 延迟目标
+
+- 交付
+
+  - [ ] CDC consumer and risk engine
+    - [ ] 消费 positions_cdc topic
+    - [ ] 以 desk level 口径触发风险计算与 breach 判断
+    - [ ] 单 desk 超限只生成一次告警, 基于 desk_risk_state 做状态判断
+    - [ ] 将 alerts 写入 alerts 表, 初始状态 pending_analysis
+    - [ ] 可选: 同步发布 risk_alerts topic 用于对外扩展
+  - [ ] LLM analyzer worker(server side)
+    - [ ] 从 analysis_queue 取 alert_id, 组装上下文并调用 LLM
+    - [ ] 写回 analysis_json 与 analysis_text
+    - [ ] 更新告警状态为 pending_delivery, 并 enqueue 到 delivery_queue
+  - [ ] webhook notifier worker
+    - [ ] 从 delivery_queue 取 alert_id 并推送到 webhook endpoint
+    - [ ] 签名校验与幂等, delivery_id 作为幂等键
+    - [ ] 重试与死信
+    - [ ] 接收方 ack API
+      - [ ] 接收方必须 ack 才能把 alert 标记为 consumed
+  - [ ] 10s 延迟目标
+    - [ ] 定义从 DB commit 到 webhook delivered 的端到端延迟口径, 默认包含 LLM 分析与投递
+    - [ ] 在 /metrics 暴露分段指标
+      - [ ] consumer lag
+      - [ ] analysis latency
+      - [ ] delivery latency
+
+- 验收
+
+  - [ ] 从单笔交易写入到告警推送 delivered 的 p95 延迟小于 10s
+  - [ ] 未 ack 的告警不会被消费 且会按策略重试
+  - [ ] ack 后告警状态可追踪并变更为 consumed
+  - [ ] /metrics 可观测 consumer lag analysis latency delivery latency 和 webhook 成功率
+
+### Week 7+(Phase 3 扩展): k8s 生产化与 CI CD
+
+- 交付
+
+  - [ ] k8s 部署形态
+    - [ ] 组件拆分
+      - [ ] mcp server
+        - [ ] 内置 analyzer worker 和 notifier worker
+      - [ ] web ui
+      - [ ] cdc consumer
+      - [ ] webhook notifier
+        - [ ] 可选, 若从 mcp server 中拆出独立部署
+      - [ ] llm analyzer
+        - [ ] 可选, 若从 mcp server 中拆出独立部署
+    - [ ] 探针
+      - [ ] /health
+      - [ ] /ready
+    - [ ] 配置与 secrets
+    - [ ] HPA 与资源口径
+  - [ ] CI CD
+    - [ ] GitHub Actions: pylint tests coverage
+
+- 验收
+
+  - [ ] k8s 可部署并可水平扩展
+  - [ ] CI 可稳定运行并阻断不合格变更
 
 ## Phase 映射(参考)
 
@@ -151,4 +242,4 @@ phase 定义:
 1. **每完成一个Phase就提交Git** - 保持代码可回溯
 2. **边开发边写测试** - 避免后期bug堆积
 3. **定期Demo** - 录制演示视频用于展示
-4. **代码质量** - 使用类型提示、添加docstring、遵循PEP 8
+4. **代码质量** - 使用类型提示 添加 docstring 遵循 PEP 8

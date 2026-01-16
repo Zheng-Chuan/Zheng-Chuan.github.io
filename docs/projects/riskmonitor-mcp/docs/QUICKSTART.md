@@ -1,125 +1,109 @@
 # 快速开始
 
-## 环境要求
+## 目标
+
+在本地最短路径启动 RiskMonitor-MCP 并让 MCP 客户端能调用工具
+
+交付与验收原则
+
+- 以 tests 作为唯一硬标准
+- 本地开发与测试依赖组件统一使用 Docker
+
+## 前置要求
 
 - Python 3.13+
-- Docker & Docker Compose
-- Git
+- Docker
 
-## 安装步骤
+说明
 
-### Step 1: 克隆项目
+- 本仓库通过 docker compose 提供 MySQL 容器
+- 如果你已经有独立的 MySQL 容器 也可以复用 只需要确保环境变量正确
+
+本地依赖组件
+
+- MySQL 在 Docker
+- Kafka Debezium 等事件驱动组件在 Docker
+
+后续 Week5 Week6 会引入 Kafka 和 binlog CDC 相关组件 并同样放在 Docker
+
+你需要准备以下环境变量
+
+- MYSQL_ROOT_PASSWORD
+- MYSQL_DATABASE
+- MYSQL_USER
+- MYSQL_PASSWORD
+
+建议你先验证连通性
+
+- 方式 A 使用 make test-db
+- 方式 B 在 python 进程启动后访问 ready endpoint
+  - <http://127.0.0.1:8000/ready>
+
+建议方式
+
+- 在 shell 里 export 这些变量
+- 或者使用你本地的方式注入到 docker compose
+
+## 方式 1 推荐 本地运行 MCP 服务 依赖用 Docker
+
+### 1 启动 MySQL
 
 ```bash
-git clone https://github.com/Zheng-Chuan/RiskMonitor-MCP.git
-cd RiskMonitor-MCP
+docker-compose up -d mysql
 ```
 
-### Step 2: 配置环境变量
+MySQL 端口映射默认是 3307 -> 3306
 
-```bash
-cp .env.example .env
-```
-
-### Step 3: 启动MySQL容器
-
-```bash
-docker-compose up -d
-```
-
-等待约10秒让MySQL完全启动。
-
-### Step 4: 创建Python虚拟环境
-
-```bash
-# 使用 conda 环境 MCP
-conda activate MCP
-```
-
-### Step 5: 安装Python依赖
+### 2 安装依赖
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 6: 测试数据库连接
+### 3 启动 MCP server
 
 ```bash
-python tests/diagnostics/db_connection_check.py
+python main.py
 ```
 
-如果看到 `✓ All tests passed!`，说明环境搭建成功！
-
-## 验证安装
-
-### 检查容器状态
+### 4 运行 tests 作为验收
 
 ```bash
-docker-compose ps
+make test
 ```
 
-应该看到:
-- `riskmonitor-mysql` - Up (healthy)
-
-### 检查数据库
+如果你希望跑覆盖率
 
 ```bash
-# 方式1: 使用测试脚本
-python tests/diagnostics/db_connection_check.py
-
-# 方式2: 直接连接数据库
-docker-compose exec mysql sh -lc 'mysql -u "$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" "$${MYSQL_DATABASE}"'
-
-# 在MySQL中执行
-SHOW TABLES;                  # 查看所有表
-SELECT * FROM positions;      # 查看数据
-EXIT;                         # 退出
+make test-cov
 ```
 
-## 使用指南
-
-### 启动服务
-
-#### 使用Makefile(推荐)
+如果你希望在 Docker 里跑 tests 也可以
 
 ```bash
-make help        # 查看所有命令
-make up          # 启动容器
-make down        # 停止容器
-make restart     # 重启容器
-make logs        # 查看日志
-make test-db     # 测试数据库连接
-make shell-db    # 进入MySQL命令行
-make clean       # 清理所有容器和数据卷
+docker-compose --profile dev run --rm test-runner
 ```
 
-#### 直接使用Docker Compose
+### 5 运行 pylint 作为交付前检查
 
 ```bash
-# 启动
-docker-compose up -d
-
-# 停止
-docker-compose down
-
-# 查看日志
-docker-compose logs -f mysql
-
-# 重启单个服务
-docker-compose restart mysql
-
-# 进入MySQL容器
-docker-compose exec mysql sh -lc 'mysql -u "$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" "$${MYSQL_DATABASE}"'
+make lint
 ```
 
-### 配置Claude Desktop
+如果你希望在 Docker 里跑 pylint 也可以
 
-编辑 `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+```bash
+docker-compose --profile dev run --rm lint-runner
+```
+
+### 6 配置 MCP 客户端
+
+以 Windsurf 为例 配置 `~/.codeium/windsurf/mcp_config.json`
 
 ```json
 {
   "mcpServers": {
-    "riskmonitor": {
+    "riskMonitor": {
       "command": "python",
       "args": ["/path/to/RiskMonitor-MCP/main.py"]
     }
@@ -127,48 +111,84 @@ docker-compose exec mysql sh -lc 'mysql -u "$${MYSQL_USER}" -p"$${MYSQL_PASSWORD
 }
 ```
 
-Windows路径: `%APPDATA%\Claude\claude_desktop_config.json`
+如果你希望用 streamable http 连接 MCP
 
-### 常用命令
+- MCP endpoint: <http://127.0.0.1:8000/mcp>
 
-#### 数据库操作
+## 方式 2: docker compose 运行 MCP server
 
-```bash
-# 测试连接
-make test-db
-
-# 进入MySQL命令行
-make shell-db
-
-# 查看表结构
-docker-compose exec mysql sh -lc 'mysql -u "$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" -e "DESCRIBE $${MYSQL_DATABASE}.positions;"'
-
-# 查看数据
-docker-compose exec mysql sh -lc 'mysql -u "$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" -e "SELECT * FROM $${MYSQL_DATABASE}.positions LIMIT 5;"'
-```
-
-#### 容器管理
+如果你希望本地也使用和 k8s 更接近的形态 可以直接起容器
 
 ```bash
-# 查看容器状态
-docker-compose ps
-
-# 查看容器日志
-docker-compose logs -f
-
-# 重启容器
-docker-compose restart
-
-# 完全清理(删除数据)
-docker-compose down -v
+docker-compose up -d mcp-server
 ```
 
-#### 可选: 启动phpMyAdmin管理界面
+默认端口
+
+- MCP server: <http://127.0.0.1:8000>
+- MCP endpoint: <http://127.0.0.1:8000/mcp>
+- health: <http://127.0.0.1:8000/health>
+- ready: <http://127.0.0.1:8000/ready>
+- metrics: <http://127.0.0.1:8000/metrics>
+
+如果你想看数据库界面
 
 ```bash
 docker-compose --profile tools up -d
 ```
 
-访问 http://localhost:8080
-- 服务器: mysql
-- 用户名: admin
+## 方式 3 复用你已有的 MySQL 容器
+
+如果你已经有一个 docker 里的 MySQL 供这个项目使用 你可以不启动本仓库的 mysql 服务
+
+你需要确保以下环境变量指向正确的 MySQL 地址
+
+- MYSQL_HOST
+- MYSQL_PORT
+- MYSQL_DATABASE
+- MYSQL_USER
+- MYSQL_PASSWORD
+
+然后本地直接运行
+
+```bash
+python main.py
+```
+
+## Web 前端选型 python only
+
+目标
+
+- 只写 python
+- 布局灵活 风格多样 页面要漂亮
+- 需要支持登录与权限认证
+
+选型建议
+
+- 服务端: FastAPI
+- 模板: Jinja2
+- 交互: HTMX
+- 样式: Tailwind CSS CDN 或 Bootstrap CDN
+
+推荐的美观策略
+
+- Tailwind 适合做布局灵活的页面
+- Bootstrap 适合快速做出稳定统一的页面
+- 你可以按页面模块选择不同风格 但保持组件边界清晰
+
+理由
+
+- 无需引入前端构建链 跟 python 项目集成成本低
+- HTMX 可以实现丰富交互 但你不用写 JavaScript
+- Tailwind 可以快速做出不同风格的页面布局
+
+落地位置
+
+- Web 门户会在 ROADMAP 的 Week 7 plus 交付
+- 该 Web 服务也将承接 webhook 接收 与 MCP tools 调用编排
+
+## 更多文档
+
+- 文档中心: [ROOT.md](ROOT.md)
+- 系统架构: [ARCHITECTURE.md](ARCHITECTURE.md)
+- 路线图: [ROADMAP.md](ROADMAP.md)
