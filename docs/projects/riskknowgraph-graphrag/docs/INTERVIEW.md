@@ -41,7 +41,31 @@
 - [ ] Q14. 你如何在建图阶段控制 graph density 和 noise?
   - 答案: TODO
 - [ ] Q15. chunk size 和 chunk overlap 会如何影响 entity 抽取和图构建?
-  - 答案: TODO
+  - 答案: 这题的核心是 chunk 粒度决定了信息边界 也决定了 citations 的最小单位
+  - 答案: 同时它会直接影响 LLM 抽取质量 关系受控清单的可判定性 以及后续图的噪声
+  - 答案: 你可以按语料类型分情况说
+  - 答案: 情况1 法规或制度条款
+    - 目标: 保留条款内的定义范围
+    - 建议: 按条款或小节切 chunk 而不是固定长度
+    - 原因: 关系通常在同一条款里成立 过长会引入其他条款干扰 过短会丢掉前提
+  - 答案: 情况2 教程或解释性文章
+    - 目标: 一个 chunk 内能包含一个概念的定义 加一两个关键关系
+    - 建议: chunk_size 中等 overlap 小
+    - 原因: LLM 更容易稳定输出受控 relation 也更容易让实体偏业务概念
+  - 答案: 情况3 公式 推导 表格密集
+    - 目标: 避免把公式和解释拆散
+    - 建议: 按段落或标题块切 chunk overlap 增大
+    - 原因: 关系的证据往往跨一句话或跨一行公式 需要 overlap 把证据留住
+  - 答案: 情况4 文档很长且主题跳跃
+    - 目标: 限制噪声 防止一条 chunk 内出现太多实体
+    - 建议: chunk_size 变小 overlap 适中
+    - 原因: 对受控 relation 来说 同一 chunk 内实体过多会让模型更容易乱连边
+  - 答案: 面试里一定要点出 chunk_size overlap 对两条线的影响不同
+    - 抽取线: 更在乎精确和可控 过大的 chunk 会导致 relation 判断飘
+    - 检索线: 更在乎 recall 适度 overlap 能减少边界信息丢失
+  - 答案: 当前 repo Week1 默认是固定窗口 chunk_size=900 overlap=150
+    - 目的: 先跑通全链路 并保证结果可复现
+    - 后续: Week2 会把 chunker 抽出来 支持按段落或标题块切分 并把参数写进 artifacts 便于回放
 - [ ] Q16. 你如何检测并去除重复或近重复的 nodes 和 edges?
   - 答案: TODO
 - [ ] Q17. 当 corpus 变化时, 你如何做 graph 的增量更新?
@@ -83,7 +107,7 @@
 - [ ] Q32. explain 相关的常见 bug 有哪些? 你如何检测它们?
   - 答案: TODO
 - [x] Q33. 你如何用 explain 和 citations 构建最小回归套件?
-  - 答案: 固定 question set 并锁定输出 schema. index 跑一次, 然后每个问题分别跑 graph 和 no-graph, 落盘输出, 并断言 schema 和基本 invariants(例如 citations 非空, seed_entities 非空). 这个 repo 提供了 scripts/run_questions.py 和加固后的 scripts/smoke_test.py.
+  - 答案: 固定 question set 并锁定输出 schema. index 跑一次, 然后每个问题分别跑 graph 和 no-graph, 并断言 schema 和基本 invariants(例如 citations 非空, seed_entities 非空). 这个 repo 用 pytest tests 与 tests/data/questions.json 固化回归.
 
 ## 评测
 
